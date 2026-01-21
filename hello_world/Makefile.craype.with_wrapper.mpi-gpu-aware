@@ -1,0 +1,43 @@
+# Define the compiler (gcc for C, g++ for C++)
+CC = CC
+
+# Define compiler flags
+CFLAGS = -I${ROCM_PATH}/include -std=c++11 -D__HIP_ROCclr__ -D__HIP_ARCH_GFX90A__=1 --rocm-path=${ROCM_PATH} --offload-arch=gfx90a -x hip
+# HIPFLAGS = --offload-arch=gfx90a
+
+# Define the linl flags.
+LFLAGS = --rocm-path=${ROCM_PATH} -L${ROCM_PATH}/lib -lamdhip64
+
+# -L${MPICH_DIR}/lib -lmpi \
+#  ${CRAY_XPMEM_POST_LINK_OPTS} -lxpmem \
+#  ${PE_MPICH_GTL_DIR_amd_gfx90a} ${PE_MPICH_GTL_LIBS_amd_gfx90a} \
+
+# Define the source files and header files
+SRCS = hello_world.cpp
+HEADERS = 
+
+# Automatically determine object file names from source file names
+OBJS = $(SRCS:.cpp=.o)
+
+# Define the executable file name
+MAIN = hello_world
+
+# The first target in the makefile is the default goal when running 'make'
+all: $(MAIN)
+
+# Rule to link object files into the executable
+$(MAIN): $(OBJS)
+	$(CC) ${LFAGS} ${OBJS} -o $(MAIN)
+
+# Implicit rule to build object files from source files
+# $@ is the target name (e.g., file1.o)
+# $< is the first prerequisite (e.g., file1.cpp)
+%.o: %.cpp $(HEADERS)
+	$(CC) $(CFLAGS) -c $< -o $@
+
+# Pseudo-target for cleanup
+.PHONY: clean
+
+clean:
+	rm -f $(OBJS) $(MAIN)
+
